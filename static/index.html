@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Hello World</title>
+		<script type="text/javascript" src="d3.v3.min.js"></script>
+	<style>
+		p {font-size : 24pt;}
+	</style>
+	</head>
+	<body>
+		<script>
+			d3.json("jsonrect.json", function (data){ 
+				var bodySelection = d3.select("body");
+				var theData = ["red","orange","yellow","green"];
+				var boxData = [0,1,2,3];
+				var svgSelection = bodySelection
+				.append("svg")
+				.attr("width", 200)
+				.attr("height", 200)
+				.style("border","1px solid black");
+				
+				var rectanglesContainer = svgSelection.selectAll("rect")
+				.data(data)
+				.enter()
+				.append("rect");
+				
+				var textlabelsContainer = svgSelection.selectAll("text")
+				.data(data)
+				.enter()
+				.append("text");
+				
+				var textlabelAttributes = textlabelsContainer
+				.attr("x", function(d){ return d.x_axis;})
+				.attr("y", function(d){ return d.y_axis;})
+				.text( function(d) {return d.label;})
+				.attr("font-family", "sans-serif")
+				.attr("font-size", "20px")
+				.attr("fill",  "black");
+				
+				var rectangleAttributes = rectanglesContainer
+				.attr("x", function(d){ return d.x_axis;})
+				.attr("y", function(d){ return d.y_axis;})
+				.attr("height", function(d){ return d.height;})
+				.attr("width", function(d){ return d.width;})
+				.style("fill", function(d){ return d.color;});
+				
+				bodySelection.selectAll("p")
+				.data(boxData)
+				.enter()
+				.append("p")
+				.text(function (d){return(d);})
+			});						
+		</script>
+	</body>
+</html>
