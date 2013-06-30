@@ -1,9 +1,12 @@
-import web, json
+import web, json, random, threading, serial, time
 from math import *
 
-urls = ('/', 'index', '/main.json','main', '/sin.json', 'sin')
+tempdata = [0,0,0,0,0,0,0,0,0,0]
 
-app = web.application(urls, globals())
+urls = ('/', 'index', '/main.json','main', '/acq.json', 'acq')
+
+app = web.application(urls, globals(), True)
+print globals()
 render = web.template.render('templates/')
 
 class main:
@@ -14,18 +17,41 @@ class main:
 		web.header('Content-Type', 'application/json')
 		return json.dumps(a)
 
-class sin:
+class acq:
 	def GET(self):
-		a = []
-		for i in range(0,10):
-			a.append({'xvalue':random.random()})
+		global tempdata
 		web.header('Content-Type', 'application/json')
-		return json.dumps(a)	
-		
+		return json.dumps(tempdata)	
 
 class index:
 	def GET(self):
 		return render.index()
 
+lock = threading.Lock()
+
+def init():
+	global ser
+	ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+	
+def acquire():
+	global ser, tempdata
+	ser.write("a")
+	temp = float(ser.readline())
+	print temp
+	print tempdata
+	lock.acquire()
+	tempdata.append(dict(temperature=temp))
+	tempdata.pop(0)
+	lock.release()
+
+def acquire_daemon():
+	while True:
+		acquire()
+		time.sleep(5)
+
 if __name__ == "__main__":
+	init()
+	t = threading.Thread(target=acquire_daemon)
+	##t.daemon = True
+	t.start()
 	app.run()
